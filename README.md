@@ -225,6 +225,18 @@ The bottleneck is CPU serialization of JSON, not the database. A single-threaded
 
 ---
 
+## Future Work
+
+- **Node cluster mode** — utilize all CPU cores instead of one
+- **Redis** — shared cache across horizontal replicas
+- **Larger instance** — Render paid tier starts at 1 CPU / 2 GB
+- **DataLoader** — batch step queries to reduce DB round-trips
+- **Optimistic UI** — instant checkbox feedback, rollback on error
+- **Playwright E2E tests** — cover create / toggle / delete flows
+- **Structured logging** — pino + OpenTelemetry tracing
+
+---
+
 ## License
 
 MIT
