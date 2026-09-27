@@ -23,16 +23,15 @@ export default function CreateReleaseForm({ onCreated }) {
     setErrorMsg("");
 
     if (!name.trim()) {
-      setErrorMsg("Name is required");
+      setErrorMsg("Please enter a release name.");
       return;
     }
     if (!date) {
-      setErrorMsg("Date is required");
+      setErrorMsg("Please pick a date for this release.");
       return;
     }
 
     try {
-      // Convert the local datetime-local value to ISO
       const isoDate = new Date(date).toISOString();
       await createRelease({
         variables: {
@@ -54,18 +53,19 @@ export default function CreateReleaseForm({ onCreated }) {
     <form className="create-form" onSubmit={handleSubmit}>
       <h2>New Release</h2>
 
-      <label>
-        Name *
+      <label className="form-label">
+        Release name <span className="req">*</span>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. v1.2.0 - Payment fixes"
+          placeholder="e.g. v1.2.0 — Payment fixes"
+          autoFocus
         />
       </label>
 
-      <label>
-        Date *
+      <label className="form-label">
+        Scheduled date <span className="req">*</span>
         <input
           type="datetime-local"
           value={date}
@@ -73,12 +73,12 @@ export default function CreateReleaseForm({ onCreated }) {
         />
       </label>
 
-      <label>
+      <label className="form-label">
         Additional info
         <textarea
           value={additionalInfo}
           onChange={(e) => setAdditionalInfo(e.target.value)}
-          placeholder="Optional notes..."
+          placeholder="Optional context, ticket links, notes..."
           rows={3}
         />
       </label>
@@ -86,7 +86,7 @@ export default function CreateReleaseForm({ onCreated }) {
       {errorMsg && <p className="error">{errorMsg}</p>}
 
       <div className="btn-row">
-        <button className="btn-primary" type="submit" disabled={loading}>
+        <button className="btn btn-primary" type="submit" disabled={loading}>
           {loading ? "Creating..." : "Create Release"}
         </button>
       </div>
