@@ -27,7 +27,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://releasecheck:releasecheck_dev_pw@db:5432/releasecheck?schema=public
+      DATABASE_URL: postgresql://releasecheck:releasecheck_dev_pw@db:5432/releasecheck?schema=public&connection_limit=20
       PORT: 4000
       NODE_ENV: production
     ports:

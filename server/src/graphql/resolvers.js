@@ -1,10 +1,11 @@
 import { prisma } from "../prisma.js";
 import { STEPS, STEP_KEYS, TOTAL_STEPS } from "../constants.js";
 import { computeStatus } from "../status.js";
+import { cached, cacheInvalidate } from "../cache.js";
 
 /**
  * Shape a Prisma Release row into the GraphQL Release shape.
- * This is where status + steps are computed on the fly.
+ * Status + steps are computed on the fly.
  */
 function shapeRelease(row) {
   const completed = new Set(row.completedSteps || []);
@@ -27,10 +28,12 @@ function shapeRelease(row) {
 export const resolvers = {
   Query: {
     releases: async () => {
-      const rows = await prisma.release.findMany({
-        orderBy: { date: "desc" },
+      return cached("releases:all", 5000, async () => {
+        const rows = await prisma.release.findMany({
+          orderBy: { date: "desc" },
+        });
+        return rows.map(shapeRelease);
       });
-      return rows.map(shapeRelease);
     },
 
     release: async (_parent, { id }) => {
@@ -41,7 +44,6 @@ export const resolvers = {
 
   Mutation: {
     createRelease: async (_parent, { name, date, additionalInfo }) => {
-      // Validation
       if (!name || !name.trim()) {
         throw new Error("Name is required");
       }
@@ -58,6 +60,8 @@ export const resolvers = {
           completedSteps: [],
         },
       });
+
+      cacheInvalidate("releases:");
       return shapeRelease(row);
     },
 
@@ -82,6 +86,8 @@ export const resolvers = {
         where: { id: releaseId },
         data: { completedSteps: Array.from(current) },
       });
+
+      cacheInvalidate("releases:");
       return shapeRelease(row);
     },
 
@@ -93,12 +99,15 @@ export const resolvers = {
         where: { id },
         data: { additionalInfo: additionalInfo?.trim() || null },
       });
+
+      cacheInvalidate("releases:");
       return shapeRelease(row);
     },
 
     deleteRelease: async (_parent, { id }) => {
       try {
         await prisma.release.delete({ where: { id } });
+        cacheInvalidate("releases:");
         return true;
       } catch {
         return false;
