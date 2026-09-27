@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: releasecheck-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: releasecheck
+      POSTGRES_PASSWORD: releasecheck_dev_pw
+      POSTGRES_DB: releasecheck
+    ports:
+      - "5433:5432"
+    volumes:
+      - releasecheck_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U releasecheck -d releasecheck"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: releasecheck-server
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://releasecheck:releasecheck_dev_pw@db:5432/releasecheck?schema=public
+      PORT: 4000
+      NODE_ENV: production
+    ports:
+      - "4000:4000"
+
+volumes:
+  releasecheck_pgdata:
